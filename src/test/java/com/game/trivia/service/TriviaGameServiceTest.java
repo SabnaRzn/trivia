@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 import java.util.*;
 
 import com.game.trivia.entity.Trivia;
+import com.game.trivia.modelDTO.EndQuestionResponse;
 import com.game.trivia.modelDTO.TriviaQuestionDto;
 import com.game.trivia.modelDTO.TriviaResponse;
 import com.game.trivia.proxy.TriviaGameProxy;
@@ -19,7 +20,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
-
+import static org.mockito.Mockito.*;
 @SpringBootTest
 public class TriviaGameServiceTest {
 
@@ -37,7 +38,7 @@ public class TriviaGameServiceTest {
         TriviaQuestionDto questionDto = new TriviaQuestionDto();
         questionDto.setQuestion("How long are we here in UK?");
         questionDto.setCorrectAnswer("2 Years");
-        questionDto.setIncorrectAnswers(Arrays.asList("3 Years", "2 Years", "1 Years"));
+        questionDto.setIncorrectAnswers(Arrays.asList("3 Years", "5 Years", "6 Years"));
 
         TriviaResponse triviaResponse = new TriviaResponse();
         triviaResponse.setTriviaQuestionDtoList(Arrays.asList(questionDto));
@@ -49,14 +50,21 @@ public class TriviaGameServiceTest {
         savedTrivia.setQuestion("How long are we here in UK?");
         savedTrivia.setCorrectAnswer("2 Years");
 
+        when(triviaGameProxy.fetchTrivia()).thenReturn(Mono.just(triviaResponse));
         when(triviaRepository.save(any(Trivia.class))).thenReturn(Mono.just(savedTrivia));
-
-        StepVerifier.create(triviaGameService.startTrivia())
+        Mono<EndQuestionResponse> result = triviaGameService.startTrivia();
+         //Assert
+        StepVerifier.create(result)
                 .assertNext(response -> {
-                    assertEquals("How long are we here in UK?", response.getAnswers());
+                    assertEquals(1L, response.getTriviaId());
+                    assertEquals("How long are we here in UK?", response.getQuestion());
                     assertNotNull(response.getTriviaId());
                 })
                 .verifyComplete();
+
+        verify(triviaGameProxy, times(1)).fetchTrivia();
+        verify(triviaRepository, times(1)).save(any(Trivia.class));
+
     }
 
 }

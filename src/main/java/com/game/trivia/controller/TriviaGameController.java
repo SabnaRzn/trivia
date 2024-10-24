@@ -2,7 +2,6 @@ package com.game.trivia.controller;
 
 import com.game.trivia.modelDTO.EndQuestionResponse;
 import com.game.trivia.modelDTO.TriviaAnswerRequest;
-import com.game.trivia.modelDTO.TriviaAnswerResponse;
 import com.game.trivia.service.TriviaGameService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,8 +32,6 @@ public class TriviaGameController {
         @PutMapping("/reply/{id}")
     public Mono<ResponseEntity<Map<String, String>>> replyToTrivia(@PathVariable Long id, @RequestBody TriviaAnswerRequest request) {
         String userAnswer = request.getAnswer();
-        //return triviaGameService.replyToTrivia(id, userAnswer);
-
                 return triviaGameService.replyToTrivia(id, userAnswer)
                         .map(result -> ResponseEntity.ok(Collections.singletonMap("result", result)))
                         .onErrorResume(NoSuchElementException.class, e ->

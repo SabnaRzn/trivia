@@ -2,7 +2,6 @@ package com.game.trivia.service;
 
 import com.game.trivia.entity.Trivia;
 import com.game.trivia.modelDTO.EndQuestionResponse;
-import com.game.trivia.modelDTO.TriviaAnswerResponse;
 import com.game.trivia.modelDTO.TriviaQuestionDto;
 import com.game.trivia.proxy.TriviaGameProxy;
 import com.game.trivia.repository.TriviaRepository;
@@ -55,8 +54,6 @@ public class TriviaGameService {
 
                 });
     }
-
-
     public Mono<String> replyToTrivia(Long id, String answer) {
         return triviaRepository.findById(id)
                 .flatMap(trivia -> {

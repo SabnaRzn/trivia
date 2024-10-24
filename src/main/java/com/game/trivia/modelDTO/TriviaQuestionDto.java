@@ -1,10 +1,10 @@
 package com.game.trivia.modelDTO;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
 import lombok.Data;
 
 import java.util.List;
-
 @Data
 public class TriviaQuestionDto {
 
