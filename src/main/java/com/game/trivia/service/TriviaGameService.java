@@ -31,6 +31,9 @@ public class TriviaGameService {
     public Mono<EndQuestionResponse> startTrivia() {
         return triviaGameProxy.fetchTrivia()
                 .flatMap(response -> {
+                    if (response.getTriviaQuestionDtoList().isEmpty()) {
+                        return Mono.error(new RuntimeException("No trivia questions found in response"));
+                    }
                     TriviaQuestionDto questionDto = response.getTriviaQuestionDtoList().get(0);
                     Trivia trivia = new Trivia();
                     trivia.setQuestion(questionDto.getQuestion());
@@ -51,22 +54,30 @@ public class TriviaGameService {
                                 endQuestionResponse.setAnswers(allAnswers);
                                 return Mono.just(endQuestionResponse);
                             });
-
+                })
+                .onErrorResume(e -> {
+                    System.err.println("Error occurred: " + e.getMessage());
+                    return Mono.error(new RuntimeException("Failed to start trivia: " + e.getMessage()));
                 });
     }
+
     public Mono<String> replyToTrivia(Long id, String answer) {
+
         return triviaRepository.findById(id)
                 .flatMap(trivia -> {
-                    if (trivia.getAnswerAttempts() >= 3) {
-                        return Mono.just("Max attempts reached! Right Answer:"+trivia.getCorrectAnswer());
-                    }
 
                     if (trivia.getCorrectAnswer().equalsIgnoreCase(answer)) {
                         return triviaRepository.delete(trivia).then(Mono.just("right!"));
                     } else {
                         trivia.setAnswerAttempts(trivia.getAnswerAttempts() + 1);
-                        return triviaRepository.save(trivia)
-                                .then(Mono.just(trivia.getAnswerAttempts() >= 3 ? "Max attempts reached! Right Answer:"+trivia.getCorrectAnswer() : "wrong!"));
+                        if (trivia.getAnswerAttempts() >= 3) {
+                            return triviaRepository.save(trivia)
+                                    .then(triviaRepository.delete(trivia))
+                                    .then(Mono.just("Max attempts reached! Right Answer:" + trivia.getCorrectAnswer()));
+                        }else{
+                            return triviaRepository.save(trivia).then(Mono.just("wrong!"));
+
+                        }
                     }
                 })
                 .switchIfEmpty(Mono.error(new NoSuchElementException("No such question!")));

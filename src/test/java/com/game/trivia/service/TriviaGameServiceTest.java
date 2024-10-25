@@ -67,4 +67,34 @@ public class TriviaGameServiceTest {
 
     }
 
-}
+    @Test
+    public void testReplyToTrivia_RightAnswer() {
+        Trivia trivia = new Trivia();
+        trivia.setTriviaId(1L);
+        trivia.setQuestion("How long are we here in UK?");
+        trivia.setCorrectAnswer("2 Years");
+
+        when(triviaRepository.findById(1L)).thenReturn(Mono.just(trivia));
+        when(triviaRepository.delete(trivia)).thenReturn(Mono.empty());
+
+        StepVerifier.create(triviaGameService.replyToTrivia(1L, "2 Years"))
+                .expectNext("right!")
+                .verifyComplete();
+    }
+    @Test
+    public void testReplyToTrivia_WrongAnswer() {
+        Trivia trivia = new Trivia();
+        trivia.setTriviaId(1L);
+        trivia.setQuestion("What is the capital of France?");
+        trivia.setCorrectAnswer("Paris");
+        trivia.setAnswerAttempts(0);
+
+        when(triviaRepository.findById(1L)).thenReturn(Mono.just(trivia));
+        when(triviaRepository.save(any(Trivia.class))).thenReturn(Mono.just(trivia));
+
+        StepVerifier.create(triviaGameService.replyToTrivia(1L, "Berlin"))
+                .expectNext("wrong!")
+                .verifyComplete();
+    }
+
+    }

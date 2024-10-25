@@ -38,11 +38,10 @@ public class TriviaGameStartMethodBDD {
 
     @Test
     void givenTriviaFetched_WhenStartTrivia_ThenReturnEndQuestionResponse() {
-        // Given
         TriviaQuestionDto triviaQuestionDto = new TriviaQuestionDto();
-        triviaQuestionDto.setQuestion("What is the capital of France?");
-        triviaQuestionDto.setCorrectAnswer("Paris");
-        triviaQuestionDto.setIncorrectAnswers(Arrays.asList("Berlin", "Rome", "London"));
+        triviaQuestionDto.setQuestion("How long are we here in UK?");
+        triviaQuestionDto.setCorrectAnswer("2 Years");
+        triviaQuestionDto.setIncorrectAnswers(Arrays.asList("3 years", "4 years", "5 years"));
 
         TriviaResponse triviaResponse = new TriviaResponse();
         triviaResponse.setTriviaQuestionDtoList(List.of(triviaQuestionDto));
@@ -55,14 +54,14 @@ public class TriviaGameStartMethodBDD {
         given(triviaGameProxy.fetchTrivia()).willReturn(Mono.just(triviaResponse));
         given(triviaRepository.save(any(Trivia.class))).willReturn(Mono.just(savedTrivia));
 
-        // When
+
         Mono<EndQuestionResponse> result = triviaGameService.startTrivia();
 
         // Then
         StepVerifier.create(result)
                 .expectNextMatches(response -> response.getTriviaId() == 1L
-                        && response.getQuestion().equals("What is the capital of France?")
-                        && response.getAnswers().contains("Paris"))
+                        && response.getQuestion().equals("How long are we here in UK?")
+                        && response.getAnswers().contains("2 Years"))
                 .verifyComplete();
 
         then(triviaGameProxy).should(times(1)).fetchTrivia();
